@@ -6,66 +6,35 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
-import jakarta.servlet.FilterChain
-import jakarta.servlet.ServletRequest
-import jakarta.servlet.ServletResponse
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import org.example.learnspring2.config.components.JwtAuthenticationConverter
+import org.example.learnspring2.config.components.JwtFilter
+import org.example.learnspring2.services.UserService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.core.convert.converter.Converter
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl.fromHierarchy
-import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.oauth2.core.authorization.OAuth2ReactiveAuthorizationManagers.hasScope
 import org.springframework.security.oauth2.jwt.*
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.web.filter.GenericFilterBean
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
-
-
-class CustomFilter : GenericFilterBean() {
-    override fun doFilter(
-        request: ServletRequest,
-        response: ServletResponse,
-        chain: FilterChain
-    ) {
-
-        val httpRequest: HttpServletRequest = request as HttpServletRequest
-        val httpResponse: HttpServletResponse = response as HttpServletResponse
-
-        chain.doFilter(request, response)
-    }
-}
-
-class CustomJwtAuthenticationConverter : Converter<Jwt, AbstractAuthenticationToken> {
-
-  private val jwtGrantedAuthoritiesConverter = JwtGrantedAuthoritiesConverter()
-
-  override fun convert(source: Jwt): AbstractAuthenticationToken {
-    val scopes = jwtGrantedAuthoritiesConverter.convert(source)
-    val authorities = source.getClaimAsStringList("authorities")?.map { SimpleGrantedAuthority(it) }
-    return JwtAuthenticationToken(source, scopes.orEmpty() + authorities.orEmpty())
-  }
-}
 
 @EnableWebSecurity
 @EnableMethodSecurity(jsr250Enabled = true)
 @Configuration
 class SecurityConfig {
+
+    @Autowired
+    private lateinit var userService: UserService
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -74,13 +43,12 @@ class SecurityConfig {
             authorizeRequests {
                 authorize(anyRequest, permitAll)
             }
-            sessionManagement {  }
             oauth2ResourceServer {
                 jwt {
-                    jwtAuthenticationConverter = CustomJwtAuthenticationConverter()
+                    jwtAuthenticationConverter = JwtAuthenticationConverter()
                 }
             }
-            httpBasic {  }
+            addFilterAt<BasicAuthenticationFilter>(JwtFilter(userService, jwtDecoder()))
             csrf { disable() }
         }
 

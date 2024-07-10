@@ -1,4 +1,4 @@
-package org.example.learnspring2.users
+package org.example.learnspring2.dto
 
 import jakarta.validation.constraints.NotBlank
 

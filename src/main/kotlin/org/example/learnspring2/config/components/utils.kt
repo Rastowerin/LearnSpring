@@ -1,7 +1,6 @@
 package org.example.learnspring2.config.components
 
 import com.nimbusds.jose.shaded.gson.JsonObject
-import org.example.learnspring2.users.User
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 

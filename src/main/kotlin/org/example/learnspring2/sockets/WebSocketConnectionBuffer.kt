@@ -1,6 +1,5 @@
-package org.example.learnspring2.config.components
+package org.example.learnspring2.sockets
 
-import jakarta.websocket.Session
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.WebSocketSession
 

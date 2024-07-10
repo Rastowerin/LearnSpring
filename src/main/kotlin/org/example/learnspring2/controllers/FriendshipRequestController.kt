@@ -1,13 +1,14 @@
-package org.example.learnspring2.friendshipRequests
+package org.example.learnspring2.controllers
 
 import com.fasterxml.jackson.annotation.JsonView
 import jakarta.annotation.security.RolesAllowed
-import org.example.learnspring2.users.JsonViews
-import org.example.learnspring2.users.UserService
+import org.example.learnspring2.entities.FriendshipRequest
+import org.example.learnspring2.services.FriendshipRequestService
+import org.example.learnspring2.etc.JsonViews
+import org.example.learnspring2.services.UserService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 
@@ -18,22 +19,22 @@ import org.springframework.web.bind.annotation.*
 class FriendshipRequestController {
 
     @Autowired
-    var userService: UserService? = null
+    lateinit var userService: UserService
 
     @Autowired
-    var friendshipRequestService: FriendshipRequestService? = null
+    lateinit var friendshipRequestService: FriendshipRequestService
 
     @PostMapping("/{id}")
     fun sendFriendshipRequest(@PathVariable id: Long): ResponseEntity<String> {
 
         val authentication = SecurityContextHolder.getContext().authentication
 
-        val sender = userService!!.findByUsername(authentication.name)
-        val receiver = userService!!.findById(id)
+        val sender = userService.findById(authentication.name.toLong())!!
+        val receiver = userService.findById(id) ?: return ResponseEntity("No such user", HttpStatus.NOT_FOUND)
         val friendshipRequest = FriendshipRequest(sender, receiver)
 
         try {
-            friendshipRequestService!!.save(friendshipRequest)
+            friendshipRequestService.save(friendshipRequest)
         } catch (e: Exception) {
             return ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
         }
@@ -46,10 +47,10 @@ class FriendshipRequestController {
     fun getForMe(): ResponseEntity<Any> {
 
         val authentication = SecurityContextHolder.getContext().authentication
-        val user = userService!!.findByUsername(authentication.name)
+        val user = userService.findById(authentication.name.toLong())!!
 
-        val requestSenders = userService!!.findFriendshipRequestSenders(user)
-            .map{ userService!!.toDtoByRequester(it, user) }
+        val requestSenders = userService.findFriendshipRequestSenders(user)
+            .map{ userService.toDto(it, user) }
 
         return ResponseEntity(requestSenders, HttpStatus.OK)
     }
@@ -57,12 +58,12 @@ class FriendshipRequestController {
     @PostMapping("/accept/{senderId}")
     fun accept(@PathVariable senderId: Long) : ResponseEntity<String> {
 
-        val username = SecurityContextHolder.getContext().authentication.name
-        val user = userService!!.findByUsername(username)
-        val sender = userService!!.findById(senderId)
+        val id = SecurityContextHolder.getContext().authentication.name.toLong()
+        val user = userService.findById(id)!!
+        val sender = userService.findById(senderId) ?: return ResponseEntity("No such user", HttpStatus.NOT_FOUND)
         
         try {
-            friendshipRequestService!!.acceptBySender(sender, user)
+            friendshipRequestService.acceptBySender(sender, user)
         } catch (e: Exception) {
             return ResponseEntity("Request does not exist", HttpStatus.NOT_FOUND)
         }
@@ -73,12 +74,12 @@ class FriendshipRequestController {
     @PostMapping("/reject/{senderId}")
     fun reject(@PathVariable senderId: Long) : ResponseEntity<String> {
 
-        val username = SecurityContextHolder.getContext().authentication.name
-        val user = userService!!.findByUsername(username)
-        val sender = userService!!.findById(senderId)
+        val id = SecurityContextHolder.getContext().authentication.name.toLong()
+        val user = userService.findById(id)!!
+        val sender = userService.findById(senderId) ?: return ResponseEntity("No such user", HttpStatus.NOT_FOUND)
 
         try {
-            friendshipRequestService!!.rejectBySender(sender, user)
+            friendshipRequestService.rejectBySender(sender, user)
         } catch (e: Exception) {
             return ResponseEntity("Request does not exist", HttpStatus.NOT_FOUND)
         }
@@ -86,18 +87,15 @@ class FriendshipRequestController {
         return ResponseEntity("Request rejected", HttpStatus.OK)
     }
 
-    @PostMapping("/cancel/{senderId}")
-    fun cancel(@PathVariable senderId: Long) : ResponseEntity<String> {
+    @PostMapping("/cancel/{receiverId}")
+    fun cancel(@PathVariable receiverId: Long) : ResponseEntity<String> {
 
-        val username = SecurityContextHolder.getContext().authentication.name
-        val user = userService!!.findByUsername(username)
-        val sender = userService!!.findById(senderId)
+        val id = SecurityContextHolder.getContext().authentication.name.toLong()
+        val user = userService.findById(id)!!
+        val receiver = userService.findById(receiverId) ?: return ResponseEntity("No such user", HttpStatus.NOT_FOUND)
 
-        try {
-            friendshipRequestService!!.cancelBySender(sender, user)
-        } catch (e: Exception) {
-            return ResponseEntity("Request does not exist", HttpStatus.NOT_FOUND)
-        }
+        friendshipRequestService.cancelByReceiver(receiver, user)
+
 
         return ResponseEntity("Request canceled", HttpStatus.OK)
     }

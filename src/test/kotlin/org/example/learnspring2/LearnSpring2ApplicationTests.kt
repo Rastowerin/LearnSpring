@@ -1,5 +1,8 @@
 package org.example.learnspring2
 
+import org.example.learnspring2.services.FriendshipRequestService
+import org.example.learnspring2.services.FriendshipService
+import org.example.learnspring2.services.UserService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -16,8 +19,17 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
   locations = ["classpath:application-integrationtest.properties"])
 class KotlinApplicationTests(@Autowired private val mockMvc: MockMvc) {
 
+    @Autowired
+    val userService: UserService? = null
+
+    @Autowired
+    val friendshipService: FriendshipService? = null
+
+    @Autowired
+    val friendshipRequestService: FriendshipRequestService? = null
+
     @Test
-    fun `a`() {
+    fun a() {
         this.mockMvc.perform(post("/start/signup")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""

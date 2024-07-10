@@ -1,6 +1,7 @@
-package org.example.learnspring2.friendshipRequests
+package org.example.learnspring2.repositories
 
-import org.example.learnspring2.users.User
+import org.example.learnspring2.entities.FriendshipRequest
+import org.example.learnspring2.entities.User
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface FriendshipRequestRepository : JpaRepository<FriendshipRequest?, Long?> {
@@ -11,5 +12,5 @@ interface FriendshipRequestRepository : JpaRepository<FriendshipRequest?, Long?>
 
     fun findAllByReceiver(receiver: User): MutableList<FriendshipRequest>
 
-    fun deleteBySenderAndReceiver(sender: User, receiver: User)
+    fun findAllBySender(sender: User): MutableList<FriendshipRequest>
 }

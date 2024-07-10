@@ -1,7 +1,6 @@
-package org.example.learnspring2.friendships
+package org.example.learnspring2.entities
 
 import jakarta.persistence.*
-import org.example.learnspring2.users.User
 import java.util.*
 
 @Entity
@@ -12,7 +11,7 @@ class Friendship {
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
 
-    @ManyToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "friends",
                joinColumns = [JoinColumn(name = "friendship_id", referencedColumnName = "id")],
                inverseJoinColumns = [JoinColumn(name = "user_id", referencedColumnName = "id")])

@@ -1,15 +1,11 @@
-package org.example.learnspring2.friendshipRequests
+package org.example.learnspring2.entities
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import jakarta.persistence.*
-import org.example.learnspring2.users.User
-import org.example.learnspring2.users.UserService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.Authentication
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import java.util.Date
 
 @Entity
-//@JsonSerialize(using = FriendshipRequestSerializer::class)
 @Table(name="friendship_requests")
 class FriendshipRequest {
 
@@ -17,16 +13,26 @@ class FriendshipRequest {
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Long = 0
 
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_DEFAULT)
     @JoinColumn(name = "sender_id", referencedColumnName = "id")
     var sender : User? = null
 
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(cascade = [CascadeType.PERSIST])
     @JoinColumn(name = "receiver_id", referencedColumnName = "id")
     var receiver : User? = null
 
     @Column(name = "send_date")
     var sendDate: Date = Date(System.currentTimeMillis())
+
+    @PreRemove
+    fun dismissUsers() {
+
+        sender!!.dismissFriendshipRequest(this)
+        receiver!!.dismissFriendshipRequest(this)
+        sender = null
+        receiver = null
+    }
 
     constructor()
 

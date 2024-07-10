@@ -1,6 +1,6 @@
-package org.example.learnspring2.friendships
+package org.example.learnspring2.repositories
 
-import org.example.learnspring2.users.User
+import org.example.learnspring2.entities.Friendship
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface FriendshipRepository : JpaRepository<Friendship?, Long?> {

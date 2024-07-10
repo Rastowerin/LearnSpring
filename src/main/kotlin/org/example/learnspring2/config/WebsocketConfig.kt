@@ -1,6 +1,6 @@
 package org.example.learnspring2.config
 
-import org.example.learnspring2.config.components.WebSocketConnection
+import org.example.learnspring2.sockets.WebSocketConnection
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.socket.config.annotation.EnableWebSocket
@@ -16,6 +16,7 @@ class WebsocketConfig : WebSocketConfigurer {
         get() = WebSocketConnection()
 
     override fun registerWebSocketHandlers(webSocketHandlerRegistry: WebSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(webSocketConnection, "/friendship_requests_number/{id}")
+        webSocketHandlerRegistry.addHandler(webSocketConnection,
+            "/friendship_requests_number/{token}")
     }
 }
